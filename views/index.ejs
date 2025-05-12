@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= profile.full_name %> - <%= profile.profession %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button id="theme-toggle-btn">
+            <i class="fas fa-moon dark-icon"></i>
+            <i class="fas fa-sun light-icon"></i>
+        </button>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content" data-aos="fade-down">
+                <div class="profile-image">
+                    <img src="<%= profile.profile_picture %>" alt="<%= profile.full_name %>">
+                </div>
+                <div class="profile-text">
+                    <h1><%= profile.full_name %></h1>
+                    <h2><%= profile.profession %></h2>
+                    <div class="social-links">
+                        <% socialLinks.forEach(link => { %>
+                            <a href="<%= link.url %>" target="_blank" rel="noopener noreferrer">
+                                <i class="fab <%= link.icon %>"></i>
+                            </a>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">About Me</h2>
+            <div class="about-content" data-aos="fade-up" data-aos-delay="100">
+                <p><%= profile.about_me %></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Skills</h2>
+            <div class="skills-container" data-aos="fade-up" data-aos-delay="100">
+                <% skills.forEach(skill => { %>
+                    <div class="skill-item">
+                        <div class="skill-info">
+                            <i class="fab <%= skill.icon %>"></i>
+                            <span><%= skill.name %></span>
+                        </div>
+                        <div class="skill-progress">
+                            <div class="progress-bar" style="width: <%= skill.proficiency || 0 %>%;" data-value="<%= skill.proficiency || 0 %>"></div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Experience Section -->
+    <section id="experience" class="section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Work Experience</h2>
+            <div class="timeline" data-aos="fade-up" data-aos-delay="100">
+                <% experience.forEach((exp, index) => { %>
+                    <div class="timeline-item <%= index % 2 === 0 ? 'left' : 'right' %>" data-aos="fade-<%= index % 2 === 0 ? 'right' : 'left' %>" data-aos-delay="<%= 150 + (index * 50) %>">
+                        <div class="timeline-content">
+                            <div class="date">
+                                <%= new Date(exp.start_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) %> - 
+                                <%= exp.end_date ? new Date(exp.end_date).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }) : 'Present' %>
+                            </div>
+                            <h3><%= exp.position %></h3>
+                            <h4><%= exp.company %></h4>
+                            <p><%= exp.description %></p>
+                            <% if(exp.is_current) { %>
+                                <span class="current-badge">Current</span>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Projects</h2>
+            <div class="projects-container" data-aos="fade-up" data-aos-delay="100">
+                <!-- TelemedApp -->
+                <div class="project-card">
+                    <h3>TelemedApp</h3>
+                    <p>TeleMed is a healthcare application designed to facilitate the management of patient appointments, medical records, and test results. The application allows users to book appointments with doctors, view their medical records, and check their test results. The system is built to enhance the efficiency of healthcare delivery and improve patient experience.</p>
+                    <div class="project-tags">
+                        <span>Healthcare</span>
+                        <span>Web App</span>
+                    </div>
+                </div>
+                
+                <!-- GAM -->
+                <div class="project-card">
+                    <h3>GAM (GUARDIAN ACADEMY MONITOR)</h3>
+                    <p>The Guardian Academic Monitoring Web Application bridges the communication gap between parents and schools, providing a seamless platform to keep parents informed about their child's academic performance and behavior in real-time. Features include Marks Management, Attendance Tracking, Behavior Reports, and a dedicated Parent Dashboard.</p>
+                    <div class="project-tags">
+                        <span>Education</span>
+                        <span>Web App</span>
+                    </div>
+                </div>
+                
+                <!-- Payroll & HR Management System -->
+                <div class="project-card">
+                    <h3>Payroll & HR Management System</h3>
+                    <p>Developed a secure and scalable payroll and HR management system, integrating payroll processing, tax calculations, HRMS, time tracking, and compliance automation. Implemented cloud infrastructure, data security (GDPR, SOC 2), and API integrations with third-party financial and HR tools.</p>
+                    <div class="project-tags">
+                        <span>HR</span>
+                        <span>Finance</span>
+                        <span>Enterprise</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Languages Section -->
+    <section id="languages" class="section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Languages</h2>
+            <div class="languages-container" data-aos="fade-up" data-aos-delay="100">
+                <div class="language-card">
+                    <h3>English</h3>
+                    <div class="language-level">
+                        <span class="level-label">Intermediate</span>
+                        <div class="level-bar">
+                            <div class="level-fill" style="width: 70%;"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="language-card">
+                    <h3>French</h3>
+                    <div class="language-level">
+                        <span class="level-label">Advanced</span>
+                        <div class="level-bar">
+                            <div class="level-fill" style="width: 90%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <div class="container">
+            <h2 class="section-title" data-aos="fade-up">Contact Me</h2>
+            <div class="contact-info" data-aos="fade-up" data-aos-delay="100">
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <h3>Email</h3>
+                        <p><a href="mailto:<%= profile.email %>"><%= profile.email %></a></p>
+                    </div>
+                </div>
+                <% if(profile.phone) { %>
+                <div class="contact-item">
+                    <i class="fas fa-phone"></i>
+                    <div>
+                        <h3>Phone</h3>
+                        <p><a href="tel:<%= profile.phone %>"><%= profile.phone %></a></p>
+                    </div>
+                </div>
+                <% } %>
+                <% if(profile.address) { %>
+                <div class="contact-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <h3>Location</h3>
+                        <p><%= profile.address %></p>
+                    </div>
+                </div>
+                <% } %>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; <%= new Date().getFullYear() %> <%= profile.full_name %>. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
