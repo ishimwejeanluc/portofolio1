@@ -87,7 +87,6 @@ services:
       - "--api.dashboard=true"
       - "--api.insecure=true"  # In production, secure the dashboard
       - "--providers.docker=true"
-      - "--providers.docker.swarm=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.file.directory=/etc/traefik"
       - "--providers.file.watch=true"
@@ -95,7 +94,7 @@ services:
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=ljeanluc394@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.email=ishimwe.luc@auca.ac.rw"
       - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json"
 
 networks:
