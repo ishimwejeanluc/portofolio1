@@ -28,16 +28,16 @@ services:
       - portfolio-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`localhost`)"
+      - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`)"
       - "traefik.http.routers.app.entrypoints=web"
       - "traefik.http.services.app.loadbalancer.server.port=3000"
       - "traefik.http.routers.app.middlewares=secure-headers@file"
       # Admin area with authentication
-      - "traefik.http.routers.app-admin.rule=Host(`localhost`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.app-admin.rule=Host(`portfolio.auca.ac.rw`) && PathPrefix(`/admin`)"
       - "traefik.http.routers.app-admin.entrypoints=web"
       - "traefik.http.routers.app-admin.middlewares=basic-auth@file,secure-headers@file"
       # API with API key authentication
-      - "traefik.http.routers.app-api.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.app-api.rule=Host(`portfolio.auca.ac.rw`) && PathPrefix(`/api`)"
       - "traefik.http.routers.app-api.entrypoints=web"
       - "traefik.http.routers.app-api.middlewares=api-key-auth@file,rate-limit@file,secure-headers@file"
 
