@@ -4,6 +4,9 @@ services:
   # Node.js application
   app:
     image: ishimwejeanluc/portfolio-app:latest
+    depends_on:
+      mysql:
+        condition: service_healthy
     deploy:
       replicas: 3  # Multiple replicas for high availability
       restart_policy:
@@ -26,6 +29,7 @@ services:
         - "traefik.http.routers.app-http.entrypoints=web"
         - "traefik.http.routers.app-http.middlewares=redirect-to-https"
     environment:
+      - NODE_ENV=production
       - DB_HOST=mysql
       - DB_USER=root
       - DB_PASSWORD=Lukatoni123
@@ -33,6 +37,12 @@ services:
       - DB_PORT=3306
     networks:
       - portfolio-network
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
   # MySQL database with data persistence
   mysql:
@@ -40,11 +50,18 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=Lukatoni123
       - MYSQL_DATABASE=portofolio
+      - MYSQL_USER=portfolio_user
+      - MYSQL_PASSWORD=portfolio_pass
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - portfolio-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pLukatoni123"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     deploy:
       placement:
         constraints:

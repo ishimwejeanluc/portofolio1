@@ -87,28 +87,67 @@ const renderTemplate = async (res, templatePath, data = {}) => {
 const routes = {
   '/': async (req, res) => {
     try {
-      // Get profile data
-      const [profileRows] = await db.query('SELECT * FROM profile LIMIT 1');
-      const profile = profileRows[0];
+      console.log('Handling root route request');
       
-      // Get skills
-      const [skillsRows] = await db.query('SELECT * FROM skills ORDER BY proficiency DESC');
-      
-      // Get experience
-      const [experienceRows] = await db.query('SELECT * FROM experience ORDER BY start_date DESC');
-      
-      // Get social links
-      const [socialRows] = await db.query('SELECT * FROM social_links');
-      
-      // Render the home page with data
-      await renderTemplate(res, path.join(__dirname, 'views', 'index.ejs'), {
-        profile,
-        skills: skillsRows,
-        experience: experienceRows,
-        socialLinks: socialRows
-      });
+      try {
+        // Get profile data
+        const [profileRows] = await db.query('SELECT * FROM profile LIMIT 1');
+        const profile = profileRows[0];
+        
+        // Get skills
+        const [skillsRows] = await db.query('SELECT * FROM skills ORDER BY proficiency DESC');
+        
+        // Get experience
+        const [experienceRows] = await db.query('SELECT * FROM experience ORDER BY start_date DESC');
+        
+        // Get social links
+        const [socialRows] = await db.query('SELECT * FROM social_links');
+        
+        // Render the home page with data
+        await renderTemplate(res, path.join(__dirname, 'views', 'index.ejs'), {
+          profile,
+          skills: skillsRows,
+          experience: experienceRows,
+          socialLinks: socialRows
+        });
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        // If there's a database error, serve a static fallback page
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>ISHIMWE JEAN LUC - Portfolio</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+              body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 20px; color: #333; }
+              .container { max-width: 800px; margin: 0 auto; }
+              h1 { color: #2c3e50; }
+              p { margin-bottom: 20px; }
+              .contact { background: #f8f9fa; padding: 20px; border-radius: 5px; }
+            </style>
+          </head>
+          <body>
+            <div class="container">
+              <h1>ISHIMWE JEAN LUC</h1>
+              <h2>Software Engineer</h2>
+              <p>Welcome to my portfolio! The database is currently being initialized. Please check back in a few moments.</p>
+              
+              <div class="contact">
+                <h3>Contact Information</h3>
+                <p>Email: ljeanluc394@gmail.com</p>
+                <p>Phone: +250780079152</p>
+                <p>Location: Kigali, Rwanda</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `);
+      }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error in root route handler:', error);
       res.writeHead(500);
       res.end('Server Error');
     }
