@@ -8,6 +8,7 @@ require('dotenv').config();
 
 // Configuration
 const PORT = process.env.PORT || 3000;
+console.log(`Starting server on port ${PORT}`);
 
 // MIME types for serving static files
 const MIME_TYPES = {
@@ -119,14 +120,13 @@ const routes = {
 // Create HTTP server
 const server = http.createServer((req, res) => {
   // Parse URL
-  const parsedUrl = url.parse(req.url, true);
+  const parsedUrl = url.parse(req.url);
   let pathname = parsedUrl.pathname;
   
   // Normalize pathname
   pathname = pathname.replace(/\/$/, '');
   if (pathname === '') pathname = '/';
   
-  // Debug log the requested path
   console.log(`Request received for path: ${pathname}`);
   
   // Check if the request is for a static file
@@ -157,13 +157,13 @@ const server = http.createServer((req, res) => {
   // 404 - Not Found
   console.log(`404 Not Found: ${pathname}`);
   res.writeHead(404, { 'Content-Type': 'text/html' });
-  res.end(`<h1>404 - Page Not Found</h1><p>Path: ${pathname}</p>`);
+  res.end(`<h1>404 - Page Not Found</h1><p>Path: ${pathname}</p><p>Please check the server logs for more information.</p>`);
 });
 
 
 
 // Start the server
-server.listen(PORT, () => {
+server.listen(PORT, 'localhost', () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
 
