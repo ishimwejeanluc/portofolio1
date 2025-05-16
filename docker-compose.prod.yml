@@ -5,9 +5,12 @@ services:
   app:
     image: ishimwejeanluc/portfolio-app:latest
     deploy:
-      replicas: 1
+      replicas: 3  # Multiple replicas for high availability
       restart_policy:
         condition: any
+      update_config:
+        parallelism: 1
+        delay: 10s
     environment:
       - DB_HOST=mysql
       - DB_USER=root
@@ -19,8 +22,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`)"
-      - "traefik.http.routers.app.entrypoints=web"
+      - "traefik.http.routers.app.entrypoints=websecure"
       - "traefik.http.services.app.loadbalancer.server.port=3000"
+      - "traefik.http.routers.app.tls=true"
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
 
   # MySQL database with data persistence
   mysql:
@@ -37,6 +42,36 @@ services:
       placement:
         constraints:
           - node.role == manager
+      restart_policy:
+        condition: on-failure
+
+  # Traefik as reverse proxy and load balancer
+  traefik:
+    image: traefik:v2.9
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.swarmMode=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=ishimwe.luc@auca.ac.rw"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+    networks:
+      - portfolio-network
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
 
 volumes:
   mysql_data:
@@ -44,27 +79,6 @@ volumes:
 networks:
   portfolio-network:
     driver: overlay
-          - node.role == manager
-      restart_policy:
-        condition: on-failure
-    environment:
-      - MYSQL_ROOT_PASSWORD=Lukatoni123
-      - MYSQL_DATABASE=portofolio
-    volumes:
-      - mysql-data:/var/lib/mysql
-    networks:
-      - portfolio-network
-
-  # Traefik as reverse proxy and load balancer
-  traefik:
-    image: traefik:v2.9
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-      restart_policy:
-        condition: any
-    ports:
       - "80:80"      # HTTP
       - "443:443"    # HTTPS
       - "8080:8080"  # Dashboard (secure this in production)
