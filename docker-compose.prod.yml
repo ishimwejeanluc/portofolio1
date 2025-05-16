@@ -15,18 +15,11 @@ services:
         delay: 10s
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`) || Host(`www.portfolio.auca.ac.rw`)"
+        - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`)"
         - "traefik.http.routers.app.entrypoints=web,websecure"
-        - "traefik.http.routers.app.tls=true"
-        - "traefik.http.routers.app.tls.certresolver=letsencrypt"
         - "traefik.http.services.app.loadbalancer.server.port=3000"
         - "traefik.http.services.app.loadbalancer.sticky=true"
         - "traefik.http.services.app.loadbalancer.sticky.cookie.name=portfolio_sticky"
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
-        - "traefik.http.routers.app-http.rule=Host(`portfolio.auca.ac.rw`) || Host(`www.portfolio.auca.ac.rw`)"
-        - "traefik.http.routers.app-http.entrypoints=web"
-        - "traefik.http.routers.app-http.middlewares=redirect-to-https"
     environment:
       - NODE_ENV=production
       - DB_HOST=mysql
@@ -36,12 +29,6 @@ services:
       - DB_PORT=3306
     networks:
       - portfolio-network
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
 
   # MySQL database with data persistence
   mysql:
@@ -49,18 +36,11 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=Lukatoni123
       - MYSQL_DATABASE=portofolio
-      - MYSQL_USER=portfolio_user
-      - MYSQL_PASSWORD=portfolio_pass
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - portfolio-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pLukatoni123"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
     deploy:
       placement:
         constraints:
@@ -77,21 +57,15 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.swarmMode=true"
-      - "--providers.docker.network=portfolio-network"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.email=ishimwe.luc@auca.ac.rw"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
       - "--log.level=DEBUG"
     ports:
       - "80:80"
-      - "443:443"  # HTTPS port
-      - "8080:8080"  # Dashboard for debugging
+      - "443:443"
+      - "8080:8080"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_data:/letsencrypt
     networks:
       - portfolio-network
     deploy:
@@ -104,11 +78,10 @@ services:
         - "traefik.enable=true"
         - "traefik.http.routers.dashboard.rule=Host(`traefik.portfolio.auca.ac.rw`)"
         - "traefik.http.routers.dashboard.service=api@internal"
-        - "traefik.http.routers.dashboard.entrypoints=web"
+        - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
 
 volumes:
   mysql_data:
-  traefik_data:
 
 networks:
   portfolio-network:
