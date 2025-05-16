@@ -41,8 +41,6 @@ let db;
   }
 })();
 
-
-
 // Helper function to serve static files
 const serveStaticFile = (res, filePath) => {
   const extname = path.extname(filePath);
@@ -163,8 +161,12 @@ const server = http.createServer((req, res) => {
 
 
 // Start the server
-server.listen(PORT, 'localhost', () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+// Use 0.0.0.0 in Docker to allow external connections, localhost for local development
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+
+server.listen(PORT, HOST, () => {
+  console.log(`Starting server on port ${PORT}`);
+  console.log(`Server running on http://${HOST}:${PORT}`);
 });
 
 // Handle server shutdown
