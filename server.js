@@ -249,6 +249,18 @@ const server = http.createServer((req, res) => {
     return serveStaticFile(res, filePath);
   }
   
+  // Handle CSS files
+  if (pathname.startsWith('/css/')) {
+    const filePath = path.join(__dirname, 'public', pathname);
+    return serveStaticFile(res, filePath);
+  }
+  
+  // Handle JS files
+  if (pathname.startsWith('/js/')) {
+    const filePath = path.join(__dirname, 'public', pathname);
+    return serveStaticFile(res, filePath);
+  }
+  
   // Handle image paths
   if (pathname.startsWith('/images/')) {
     const filePath = path.join(__dirname, 'public', pathname);
