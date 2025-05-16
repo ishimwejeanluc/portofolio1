@@ -11,6 +11,20 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`) || Host(`www.portfolio.auca.ac.rw`)"
+        - "traefik.http.routers.app.entrypoints=web,websecure"
+        - "traefik.http.routers.app.tls=true"
+        - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+        - "traefik.http.services.app.loadbalancer.server.port=3000"
+        - "traefik.http.services.app.loadbalancer.sticky=true"
+        - "traefik.http.services.app.loadbalancer.sticky.cookie.name=portfolio_sticky"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+        - "traefik.http.routers.app-http.rule=Host(`portfolio.auca.ac.rw`) || Host(`www.portfolio.auca.ac.rw`)"
+        - "traefik.http.routers.app-http.entrypoints=web"
+        - "traefik.http.routers.app-http.middlewares=redirect-to-https"
     environment:
       - DB_HOST=mysql
       - DB_USER=root
@@ -19,11 +33,6 @@ services:
       - DB_PORT=3306
     networks:
       - portfolio-network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`)"
-      - "traefik.http.routers.app.entrypoints=web"
-      - "traefik.http.services.app.loadbalancer.server.port=3000"
 
   # MySQL database with data persistence
   mysql:
@@ -48,12 +57,22 @@ services:
     image: traefik:v2.9
     command:
       - "--api.insecure=true"
+      - "--api.dashboard=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.swarmMode=true"
+      - "--providers.docker.network=portfolio-network"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=ishimwe.luc@auca.ac.rw"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--log.level=DEBUG"
     ports:
       - "80:80"
+      - "443:443"  # HTTPS port
+      - "8080:8080"  # Dashboard for debugging
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik:/etc/traefik
@@ -65,6 +84,11 @@ services:
           - node.role == manager
       restart_policy:
         condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.dashboard.rule=Host(`traefik.portfolio.auca.ac.rw`)"
+        - "traefik.http.routers.dashboard.service=api@internal"
+        - "traefik.http.routers.dashboard.entrypoints=web"
 
 volumes:
   mysql_data:
