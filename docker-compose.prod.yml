@@ -5,8 +5,7 @@ services:
   app:
     image: ishimwejeanluc/portfolio-app:latest
     depends_on:
-      mysql:
-        condition: service_healthy
+      - mysql
     deploy:
       replicas: 3  # Multiple replicas for high availability
       restart_policy:
