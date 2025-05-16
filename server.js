@@ -126,6 +126,9 @@ const server = http.createServer((req, res) => {
   pathname = pathname.replace(/\/$/, '');
   if (pathname === '') pathname = '/';
   
+  // Debug log the requested path
+  console.log(`Request received for path: ${pathname}`);
+  
   // Check if the request is for a static file
   if (pathname.startsWith('/public/')) {
     const filePath = path.join(__dirname, pathname);
@@ -152,8 +155,9 @@ const server = http.createServer((req, res) => {
 
   
   // 404 - Not Found
+  console.log(`404 Not Found: ${pathname}`);
   res.writeHead(404, { 'Content-Type': 'text/html' });
-  res.end('<h1>404 - Page Not Found</h1>');
+  res.end(`<h1>404 - Page Not Found</h1><p>Path: ${pathname}</p>`);
 });
 
 
