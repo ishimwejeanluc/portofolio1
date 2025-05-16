@@ -3,9 +3,6 @@ version: '3.8'
 services:
   # Node.js application
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
     image: ishimwejeanluc/portfolio-app:latest
     deploy:
       replicas: 1
@@ -24,7 +21,6 @@ services:
       - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`)"
       - "traefik.http.routers.app.entrypoints=web"
       - "traefik.http.services.app.loadbalancer.server.port=3000"
-
 
   # MySQL database with data persistence
   mysql:
@@ -48,12 +44,6 @@ volumes:
 networks:
   portfolio-network:
     driver: overlay
-      context: .
-      dockerfile: Dockerfile.mysql
-    image: ishimwejeanluc/portfolio-mysql:latest
-    deploy:
-      placement:
-        constraints:
           - node.role == manager
       restart_policy:
         condition: on-failure
