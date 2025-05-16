@@ -1,0 +1,110 @@
+version: '3.8'
+
+services:
+  # Node.js application - multiple replicas for load balancing
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ishimwejeanluc/portfolio-app:latest
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: any
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=Lukatoni123
+      - DB_NAME=portofolio
+      - DB_PORT=3306
+    networks:
+      - portfolio-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`portfolio.auca.ac.rw`)"
+      - "traefik.http.routers.app.entrypoints=websecure"
+      - "traefik.http.routers.app.tls=true"
+      - "traefik.http.routers.app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+      - "traefik.http.routers.app.middlewares=secure-headers@file"
+      # Admin area with authentication
+      - "traefik.http.routers.app-admin.rule=Host(`portfolio.auca.ac.rw`) && PathPrefix(`/admin`)"
+      - "traefik.http.routers.app-admin.entrypoints=websecure"
+      - "traefik.http.routers.app-admin.tls=true"
+      - "traefik.http.routers.app-admin.middlewares=basic-auth@file,secure-headers@file"
+      # API with API key authentication
+      - "traefik.http.routers.app-api.rule=Host(`portfolio.auca.ac.rw`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.app-api.entrypoints=websecure"
+      - "traefik.http.routers.app-api.tls=true"
+      - "traefik.http.routers.app-api.middlewares=api-key-auth@file,rate-limit@file,secure-headers@file"
+
+  # MySQL database with data persistence
+  mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile.mysql
+    image: ishimwejeanluc/portfolio-mysql:latest
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+    environment:
+      - MYSQL_ROOT_PASSWORD=Lukatoni123
+      - MYSQL_DATABASE=portofolio
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - portfolio-network
+
+  # Traefik as reverse proxy and load balancer
+  traefik:
+    image: traefik:v2.9
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: any
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+      - "8080:8080"  # Dashboard (secure this in production)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-data:/etc/traefik
+    networks:
+      - portfolio-network
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"  # In production, secure the dashboard
+      - "--providers.docker=true"
+      - "--providers.docker.swarm=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.file.directory=/etc/traefik"
+      - "--providers.file.watch=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=ljeanluc394@gmail.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/etc/traefik/acme.json"
+
+networks:
+  portfolio-network:
+    driver: overlay
+    attachable: true
+
+volumes:
+  mysql-data:
+    driver: local
+  traefik-data:
+    driver: local

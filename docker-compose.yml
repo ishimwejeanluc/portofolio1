@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Node.js application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ishimwejeanluc/portfolio-app:latest
+    container_name: portfolio-app
+    restart: always
+    ports:
+      - "3000"
+    depends_on:
+      - mysql
+    environment:
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=Lukatoni123
+      - DB_NAME=portofolio
+      - DB_PORT=3306
+    networks:
+      - portfolio-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app.rule=Host(`portfolio.localhost`)"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+      - "traefik.http.routers.app.entrypoints=web"
+
+  # MySQL database
+  mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile.mysql
+    image: ishimwejeanluc/portfolio-mysql:latest
+    container_name: portfolio-mysql
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=Lukatoni123
+      - MYSQL_DATABASE=portofolio
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - portfolio-network
+
+  # Traefik as reverse proxy and load balancer
+  traefik:
+    image: traefik:v2.9
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80"      # HTTP
+      - "443:443"    # HTTPS
+      - "8080:8080"  # Dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik:/etc/traefik
+    networks:
+      - portfolio-network
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+networks:
+  portfolio-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
